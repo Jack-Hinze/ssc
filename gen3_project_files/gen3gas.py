@@ -40,7 +40,7 @@ class Variables:
         self.receiver_tube_diam = 3/8         # in outside diameter
         self.riser_inner_diam = 0.490         # m
         self.downcomer_inner_diam = 0.490     # m
-        self.hours_tes = 13                   # hr        
+        self.hours_tes = 13                   # hr
         self.dT_approach_charge_hx = 15       # C  charge hx approach temp
         self.dT_approach_ht_disch_hx = 15     # C  high-temp discharge hx approach temp
         self.dT_approach_lt_disch_hx = 15     # C  low-temp discharge hx approach temp
@@ -60,7 +60,7 @@ class Variables:
             cycle_design_power = self.cycle_design_power
         else:
             cycle_design_power = kwargs['cycle_design_power']
-        
+
         if not 'solar_multiple' in kwargs:
             solar_multiple = self.solar_multiple
         else:
@@ -74,13 +74,13 @@ class Variables:
             is_north = kwargs['is_north']
 
         #guess the tower height based on current variable values
-        return receiver.calculate_tower_height(cycle_design_power*1000. / 0.43 * solar_multiple, is_north=is_north, wp_data=wp_data)  
+        return receiver.calculate_tower_height(cycle_design_power*1000. / 0.43 * solar_multiple, is_north=is_north, wp_data=wp_data)
 
 class Settings:
     def __init__(self):
         self.print_ssc_messages = False
         self.print_summary_output = False
-        self.save_hourly_results = False
+        self.save_hourly_results = True
         self.dni_des_ref = 976.
         self.lift_technology = 'skip'    #or 'bucket'
         self.is_north = False                  # is field north or surround
@@ -116,7 +116,7 @@ class Gen3opt:
         self.settings = Settings()
         self.summary_results = []
         self.hourly_data = None
-    
+
     #----------------------------------------------------------------
     def load_ssc_constants(self, ssc, data):
 
@@ -144,7 +144,7 @@ class Gen3opt:
         """
         #ssc.data_set_array_from_csv( data, b'wlim_series', b'resource/wlim_series.csv');
         #ssc.data_set_array_from_csv( data, b'dispatch_factors_ts', b'resource/dispatch_factors_ts.csv');
-        
+
         """
         ####################################################
                     parameters
@@ -153,7 +153,7 @@ class Gen3opt:
         #design
         ssc.data_set_number( data, b'gross_net_conversion_factor', 0.9 );
         ssc.data_set_number( data, b'P_ref', NaN );
-        ssc.data_set_number( data, b'design_eff', NaN);     # 0.43; 
+        ssc.data_set_number( data, b'design_eff', NaN);     # 0.43;
         ssc.data_set_number( data, b'tshours', NaN );     # 10.3
         ssc.data_set_number( data, b'solarm',  NaN );
 
@@ -187,7 +187,7 @@ class Gen3opt:
         ssc.data_set_number( data, b'foundation_fixed_cost', NaN );
         ssc.data_set_number( data, b'foundation_cost_scaling_quadratic', NaN );
         ssc.data_set_number( data, b'foundation_cost_scaling_linear', NaN );
-        ssc.data_set_number( data, b'particle_lift_cost', NaN )  
+        ssc.data_set_number( data, b'particle_lift_cost', NaN )
         ssc.data_set_number( data, b'riser_and_downcomer_cost', NaN );
 
         ssc.data_set_number( data, b'rec_ref_cost', NaN );
@@ -200,13 +200,13 @@ class Gen3opt:
 
         #Plant and BOP
         ssc.data_set_number( data, b'plant_spec_cost', NaN );
-        ssc.data_set_number( data, b'bop_spec_cost', 0 );      
+        ssc.data_set_number( data, b'bop_spec_cost', 0 );
 
         #TES
-        ssc.data_set_number( data, b'tes_spec_cost', NaN)  
+        ssc.data_set_number( data, b'tes_spec_cost', NaN)
 
         #land
-        ssc.data_set_number( data, b'land_spec_cost', 0); 
+        ssc.data_set_number( data, b'land_spec_cost', 0);
         ssc.data_set_number( data, b'csp.pt.sf.fixed_land_area', 0 );
         ssc.data_set_number( data, b'csp.pt.sf.land_overhead_factor', 1 );
         ssc.data_set_number( data, b'land_area_base', 2822 );         #from spreadsheet
@@ -232,8 +232,8 @@ class Gen3opt:
         field_fl_props = [ [ 1, 7, 0, 0, 0, 0, 0, 0, 0 ] ]
         ssc.data_set_matrix( data, b'field_fl_props', field_fl_props );
         ssc.data_set_number( data, b'f_rec_min', NaN );
-        ssc.data_set_number( data, b'rec_su_delay', NaN); 
-        ssc.data_set_number( data, b'rec_qf_delay', NaN); 
+        ssc.data_set_number( data, b'rec_su_delay', NaN);
+        ssc.data_set_number( data, b'rec_qf_delay', NaN);
         ssc.data_set_number( data, b'csp.pt.rec.max_oper_frac', NaN );
         ssc.data_set_number( data, b'piping_loss', NaN );
         ssc.data_set_number( data, b'piping_length_mult', NaN );
@@ -355,7 +355,7 @@ class Gen3opt:
 
         #------------------------------------------------------------------------------
 
-        ssc.data_set_number( data, b'analysis_period', 30 ); 
+        ssc.data_set_number( data, b'analysis_period', 30 );
         federal_tax_rate = [ 35 ]
         ssc.data_set_array( data, b'federal_tax_rate', federal_tax_rate );
         state_tax_rate = [ 5 ]
@@ -371,10 +371,10 @@ class Gen3opt:
         ssc.data_set_array( data, b'om_fixed', om_fixed );
         ssc.data_set_number( data, b'om_fixed_escal', 0 );
         om_production = [ NaN ]
-        ssc.data_set_array( data, b'om_production', om_production); 
+        ssc.data_set_array( data, b'om_production', om_production);
         ssc.data_set_number( data, b'om_production_escal', 0 );
         om_capacity = [ NaN ]
-        ssc.data_set_array( data, b'om_capacity', om_capacity );    
+        ssc.data_set_array( data, b'om_capacity', om_capacity );
         ssc.data_set_number( data, b'om_capacity_escal', 0 );
         om_fuel_cost = [ 0 ]
         ssc.data_set_array( data, b'om_fuel_cost', om_fuel_cost );
@@ -747,8 +747,10 @@ class Gen3opt:
         """
         W_pb                [kWe] Rated power block electrical output
         """
-        W_pb_MW = W_pb * 1e-3
-        return 3.95225e1 * W_pb_MW**2 - 1.97421e4 * W_pb_MW + 1.04092e7
+        # W_pb_MW = W_pb * 1e-3
+        W_pb_MW = W_pb
+        cost = (39.522 * W_pb_MW**2 - 19742.1 * W_pb_MW + 10409200)/100*W_pb_MW
+        return cost
 
     #----------------------------------------------------------------
     def exec(self, **kw):
@@ -791,7 +793,7 @@ class Gen3opt:
         T_pc_hot_des = T_rec_hot_des - (self.variables.dT_approach_charge_hx + self.variables.dT_approach_ht_disch_hx)
         T_rec_cold_des = T_rec_hot_des - self.settings.cycle_temperature_drop
         T_tes_hot_des = T_rec_hot_des - self.variables.dT_approach_charge_hx
-        T_tes_cold_des = T_tes_hot_des - self.settings.cycle_temperature_drop 
+        T_tes_cold_des = T_tes_hot_des - self.settings.cycle_temperature_drop
         T_tes_warm_des = T_tes_cold_des + self.variables.dT_approach_charge_hx + self.variables.dT_approach_ht_disch_hx  # cold media entering rec3, then sco2 entering hthx
         T_pc_cold_des = T_pc_hot_des - self.settings.cycle_temperature_drop
 
@@ -813,7 +815,7 @@ class Gen3opt:
         with open('resource/ud_ind_od_python.csv', 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_NONE)
             wr.writerows(ud_ind_od)
-        
+
         ud_ind_od_off_sun = cycle.create_updc_lookup('resource/ud_ind_od_off_sun.csv', T_pc_hot_des)
         if not sf_des_only:
             ssc.data_set_matrix( data, b'ud_ind_od_off_sun', ud_ind_od_off_sun );
@@ -889,7 +891,7 @@ class Gen3opt:
         # Permitting
         analysis_period = ssc.data_get_number( data, b'analysis_period' )
         permitting_costs = self.PermittingCosts('California', self.variables.h_tower, self.variables.cycle_design_power * 1.e3, analysis_period)
-        
+
         #riser cost
         piping_length_mult = 1.5
         piping_length_const = 50
@@ -903,7 +905,7 @@ class Gen3opt:
 
         #receiver cost
         recd = receiver.calculate_cost(self.variables.receiver_tube_diam, self.variables.receiver_height, N_tubes)
-        rec_total_cost = recd['total_cost'] 
+        rec_total_cost = recd['total_cost']
         rec_area = recd['A_rec']
         D_rec = recd['W_rec']
 
@@ -917,7 +919,7 @@ class Gen3opt:
         dhx = tes.calculate_hx_cost(q_pb_des*1000, self.variables.dT_approach_charge_hx, self.variables.dT_approach_ht_disch_hx, self.variables.dT_approach_lt_disch_hx, \
             T_rec_hot_des, T_rec_cold_des, self.settings.is_direct_system, self.settings.scale_hx_cost)
         hx_cost = dhx['total_cost']
-        e_tes = self.variables.hours_tes * q_pb_des * 1000  #kWh       
+        e_tes = self.variables.hours_tes * q_pb_des * 1000  #kWh
         tes_spec_cost = tes_spec_bos_cost + hx_cost/e_tes
 
         #O&M cost
@@ -927,8 +929,8 @@ class Gen3opt:
         duty_HXs = {'charge': dhx['duty_charge'],
                     'discharge_high_temp': dhx['duty_discharge_hot'],
                     'discharge_low_temp': dhx['duty_discharge_cold']}
-        c_om_fixed = self.AnnualOAndMCosts(self.variables.cycle_design_power * 1.e3, helio_area * N_hel, rec_total_cost, duty_HXs)
-
+        # c_om_fixed = self.AnnualOAndMCosts(self.variables.cycle_design_power * 1.e3, helio_area * N_hel, rec_total_cost, duty_HXs)
+        c_om_fixed = self.AnnualOAndMCostsSimplified(self.variables.cycle_design_power)
         #availability --> all availability sources are included in LiftAvailability
         total_avail = tes.LiftAvailability(q_pb_des * 1e3, self.settings.lift_technology)
 
@@ -939,7 +941,7 @@ class Gen3opt:
         """
         #design
         ssc.data_set_number( data, b'P_ref', self.variables.cycle_design_power );
-        ssc.data_set_number( data, b'design_eff', cycle_efficiency);     # 0.43; 
+        ssc.data_set_number( data, b'design_eff', cycle_efficiency);     # 0.43;
         ssc.data_set_number( data, b'tshours', self.variables.hours_tes );     # 10.3
         ssc.data_set_number( data, b'solarm',  self.variables.solar_multiple);
         ssc.data_set_number( data, b'is_direct_system', self.settings.is_direct_system);
@@ -1048,7 +1050,7 @@ class Gen3opt:
 
         #------------------------------------------------------------------------------
 
-        module = ssc.module_create(b'tcsmolten_salt') 
+        module = ssc.module_create(b'tcsmolten_salt')
         ssc.module_exec_set_print( 0 );
         sim_failed = ssc.module_exec(module, data) == 0
         if sim_failed:
@@ -1084,14 +1086,14 @@ class Gen3opt:
         annual_W_cycle_gross = ssc.data_get_number( data, b'annual_W_cycle_gross' )     # [kWhe]
         W_cycle_gross = self.variables.cycle_design_power * 1.e3                        # [kWe]
         om_sam_default_model = 40. * W_cycle_gross + 3. * annual_W_cycle_gross * 1.e-3  # [$]
-        om_fixed = min(om_sam_default_model, om_bottom_up_model)
-        #om_fixed = om_bottom_up_model
+        # om_fixed = min(om_sam_default_model, om_bottom_up_model)
+        om_fixed = om_bottom_up_model
 
         ssc.data_set_array( data, b'om_fixed', [om_fixed] );
         om_production = [0]
-        ssc.data_set_array( data, b'om_production', om_production); 
+        ssc.data_set_array( data, b'om_production', om_production);
         om_capacity = [0]
-        ssc.data_set_array( data, b'om_capacity', om_capacity );    
+        ssc.data_set_array( data, b'om_capacity', om_capacity );
 
         p_ref = ssc.data_get_number( data, b'P_ref' );
         ssc.data_set_number( data, b'system_capacity', p_ref*1000. );
@@ -1118,7 +1120,7 @@ class Gen3opt:
         #------------------------------------------------------------------------------
 
         if self.settings.save_hourly_results:
-        
+
             #outputs
             self.hourly_output_columns=[
                 ["a_sf1", "m2", 1],
@@ -1323,7 +1325,7 @@ class Gen3opt:
         print("Variable not found: " + name)
 
     #----------------------------------------------------------------
-    def write_hourly_results_to_file(self, file_path="output_dview.csv"):
+    def write_hourly_results_to_file(self, file_path="output_hourly.csv"):
 
         if not self.settings.save_hourly_results:
             print("Hourly results were not saved for this simulation and connot be written to file.")
@@ -1340,8 +1342,7 @@ class Gen3opt:
             fout.write(txt)
 
         return
-
-#------------------------------------------------------------------------------
+    #---------------------------------------------------------------
 
 def run_single_case(casevars):
 
@@ -1352,7 +1353,7 @@ def run_single_case(casevars):
     g.settings.print_ssc_messages = True
 
     # g.settings.scale_hx_cost = 0.5
-    
+
     evaltype, \
     northstr, \
     g.settings.lift_technology, \
@@ -1379,11 +1380,11 @@ def run_single_case(casevars):
     sum_results = [['evaltype', evaltype], ['field', northstr], ['lift_technology', g.settings.lift_technology]]
     for key in g.variables.__dict__.keys():
         sum_results.append([key, g.variables.__getattribute__(key)])
-    
+
     for key,v in g.summary_results:
         sum_results.append([key, v])
-    
-    #g.write_hourly_results_to_file()
+
+    g.write_hourly_results_to_file()
 
     return sum_results
 
@@ -1391,7 +1392,8 @@ if __name__ == "__main__":
     # , , , P_ref,              solarm,         h_tower, dni_des,          rec_height,      -,                  piping_riser_diam, piping_downcomer_diam, tshours,   dt_charging,           dt_ht_discharging,       dt_lt_discharging
     # , , , cycle_design_power, solar_multiple, h_tower, dni_design_point, receiver_height, receiver_tube_diam, riser_inner_diam,  downcomer_inner_diam,  hours_tes, dT_approach_charge_hx, dT_approach_ht_disch_hx, dT_approach_lt_disch_hx
     cases = [
-        ['21_01_03_MW_base_opt', 'surround', 'skip', 83.045, 2.2, 110.71, 650, 4.342, 0.375, 0.399, 0.403, 11.381, 31.009, 23.255],
+        ['21_01_03_MW_base_opt', 'surround', 'skip', 5, 2.604, 45, 596, 2.44, 0.316, 0.184, 0.184, 10.349, 36.7, 27.6],
+        # ['21_01_03_MW_base_opt', 'surround', 'skip', 83.045, 2.2, 110.71, 650, 4.342, 0.375, 0.399, 0.403, 11.381, 31.009, 23.255],
         #['21_01_04_MW_peak_opt', 'surround', 'skip', 83.506, 1.288, 95.687, 713.305, 4.334, 0.375, 0, 0, 12.65, 38.87, 32.973, 0],
         #['21_01_04_MW_peak_opt2', 'surround', 'skip', 63.087, 1.474, 67.418, 757.744, 3.317, 0.348, 0, 0, 15.644, 39.663, 29.863, 0],
         #['21_01_04_MW_peak_opt_sigfig', 'surround', 'skip', 63., 1.47, 67.4, 760, 3.3, 0.348, 0, 0, 15.6, 40., 30., 0],
@@ -1431,7 +1433,7 @@ if __name__ == "__main__":
     #     cycle_design_power in cycle_design_powers]
     # o_and_m_simplified = [Gen3opt.AnnualOAndMCostsSimplified(cycle_design_power * 1.e3) for \
     #     cycle_design_power in cycle_design_powers]
-    
+
     # fig = plt.figure()
     # ax = fig.add_subplot(1, 1, 1)
     # ax.plot(cycle_design_powers, o_and_m_detailed, label='Detailed')
@@ -1457,7 +1459,7 @@ if __name__ == "__main__":
 
     # cases = []
     # datcols = df.columns[5:]
-    
+
     # casetypes = list(set(df.case.values))
     # casetypes.sort()
 
@@ -1466,11 +1468,11 @@ if __name__ == "__main__":
     #     for index,row in dfc.iterrows():
     #         cases.append(
     #             ['pareto'] +
-    #             row.case.split('-') + 
+    #             row.case.split('-') +
     #             [row[col] for col in datcols]
     #         )
 
-        
+
     # multiprocessing.freeze_support()
     # nthreads = min(6, len(cases))
     # pool = multiprocessing.Pool(processes=nthreads)
