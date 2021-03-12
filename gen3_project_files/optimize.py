@@ -1,12 +1,14 @@
+import sys
+sys.path.append('C:/Users/jack.hinze/Documents/Heliogen/Integrated System/ssc-gen3_gas/gen3_project_files')
 import gen3gas as G3
 import receiver as G3rec
 import field as G3field
-import scipy.optimize 
+import scipy.optimize
 import multiprocessing
 import random
 import time
 import os
-from math import erf, isnan 
+from math import erf, isnan
 
 class global_handler:
     def __init__(self, sf_interp_provider):
@@ -38,8 +40,8 @@ def update_qsf_calculation(x_scaled, data):
 
     # Assign variables before calling exec
     data.variables.cycle_design_power,\
-        # data.variables.solar_multiple,\
-        data.variables.h_tower,\
+    data.variables.solar_multiple,\
+    data.variables.h_tower,\
         data.variables.dni_design_point,\
         data.variables.receiver_height,\
         data.variables.receiver_tube_diam,\
@@ -85,7 +87,7 @@ def f_eval(x, data):
     # x_unscaled[4] = x_unscaled[4] * (receiver_height_max - receiver_height_min) + receiver_height_min   # [4] = receiver_height
 
     data.variables.cycle_design_power,\
-        # data.variables.solar_multiple,\
+        data.variables.solar_multiple,\
         data.variables.h_tower,\
         data.variables.dni_design_point,\
         data.variables.receiver_height,\
@@ -98,7 +100,7 @@ def f_eval(x, data):
         # data.variables.dT_approach_lt_disch_hx = x_unscaled
 
     data.variables.dT_approach_lt_disch_hx = data.variables.dT_approach_ht_disch_hx
-    
+
     try:
         simok = data.exec()
     except Exception as E:
@@ -109,7 +111,7 @@ def f_eval(x, data):
         data.current_iteration += 1
         # print("function evaluation NAN", x_unscaled)
         return float('nan')
-        
+
     lcoe = data.get_result_value('LCOE (real)')
     if lcoe < 0.1 or lcoe > 50:
         lcoe = float('nan')
@@ -129,7 +131,7 @@ def f_eval(x, data):
         data.z_best['iter'] = data.current_iteration
         data.z_best['q_sf_des'] = data.variables.q_sf_des/3
         data.z_best['l_min'] = L_min
-    
+
 
     logline = data.global_handler.log_entry(x_unscaled, lcoe, data.variables.q_sf_des/3, L_min, data.current_iteration, data.casename)
     data.optimization_log += "\n" + logline
@@ -139,7 +141,7 @@ def f_eval(x, data):
     print(timestamp + logline)
 
     data.current_iteration += 1
-    return lcoe_pen 
+    return lcoe_pen
 
 def optimize(thread_id, GlobalHandler, **kwargs):
 
@@ -153,17 +155,17 @@ def optimize(thread_id, GlobalHandler, **kwargs):
     g.global_handler = GlobalHandler
 
     g.settings.is_north = False # 'north' in case
-    
+
     # force attributes for optimization
     g.optimization_log = ""
     g.settings.lift_technology = 'skip' #'bucket' if 'bucket' in case else 'skip'
-    g.casename = case 
+    g.casename = case
     g.current_iteration = 0
     g.clock_time_start = time.time()
-    
+
     # set variable bounds
     xb = [
-        [   50  ,  120  ],   # [0] cycle_design_power
+        [   5  ,  5  ],   # [0] cycle_design_power
         [   2.2 ,  3.2  ],   # [1] solar_multiple
         [   50  ,  200  ],   # [2] h_tower
         [   650 ,  1200 ],   # [3] dni_design_point
@@ -176,7 +178,7 @@ def optimize(thread_id, GlobalHandler, **kwargs):
         [   10  ,  40   ],   # [10] dT_approach_ht_disch_hx
         # [   10  ,  40   ],   # [11] dT_approach_lt_disch_hx
     ]
-    
+
     if "x0" in kwargs:
         x0 = kwargs["x0"]
     else:
@@ -191,18 +193,18 @@ def optimize(thread_id, GlobalHandler, **kwargs):
         x0[1] = random.uniform(xb[1][0], sm_max)
 
         # correlate tower height guess to power
-        x0[2] = g.variables.guess_h_tower(cycle_design_power = x0[0], solar_multiple = x0[1], is_north = g.settings.is_north) 
+        x0[2] = g.variables.guess_h_tower(cycle_design_power = x0[0], solar_multiple = x0[1], is_north = g.settings.is_north)
 
-        # set riser_inner_diam guess at the same fraction across its range as 
+        # set riser_inner_diam guess at the same fraction across its range as
         #  the tower height is across its range b/c they're positively correlated
-        x0[6] = xb[6][0] + (x0[2] - xb[2][0]) * (xb[6][1] - xb[6][0]) / (xb[2][1] - xb[2][0])    
+        x0[6] = xb[6][0] + (x0[2] - xb[2][0]) * (xb[6][1] - xb[6][0]) / (xb[2][1] - xb[2][0])
 
-        # set downcomer_inner_diam guess at the same fraction across its range as 
+        # set downcomer_inner_diam guess at the same fraction across its range as
         #  the tower height is across its range b/c they're positively correlated
-        x0[7] = xb[7][0] + (x0[2] - xb[2][0]) * (xb[7][1] - xb[7][0]) / (xb[2][1] - xb[2][0])    
+        x0[7] = xb[7][0] + (x0[2] - xb[2][0]) * (xb[7][1] - xb[7][0]) / (xb[2][1] - xb[2][0])
 
         #----------- loop to solve for acceptable guess tube diameter
-        d_tube_guess0 = x0[5]  # inch 
+        d_tube_guess0 = x0[5]  # inch
         h_rec_guess0 = x0[4]   # m
         ddtube = 99999
         dtubetol = 0.05
@@ -235,7 +237,7 @@ def optimize(thread_id, GlobalHandler, **kwargs):
                 x0[5] = 0.375
                 break
             else:
-                d_tube_guess = 1.2*d_tube_min 
+                d_tube_guess = 1.2*d_tube_min
 
             ddtube = abs(d_tube_guess - d_tube_guess0)
 
@@ -244,7 +246,7 @@ def optimize(thread_id, GlobalHandler, **kwargs):
             x0[5] = d_tube_guess
 
             it += 1
-            
+
 
     # normalize bounds using respective guess values
     for i in range(len(x0)):
@@ -286,20 +288,20 @@ if __name__ == "__main__":
 
 
     GS = global_handler(G3field.load_heliostat_interpolator_provider('resource/eta_lookup_all.csv', 'surround'))        #choose 'north' or 'surround'
-    
+
     # Run different field-lift combinations on different threads
-    nthreads = 12
-    nreplicates = 120
+    nthreads = 2
+    nreplicates = 2
     # -------
     all_args = []
     for i in range(nreplicates):
-        all_args.append([i, GS]) 
+        all_args.append([i, GS])
     # -------
     pool = multiprocessing.Pool(processes=nthreads)
     pool.starmap(optimize, all_args)
-    
 
     # optimize(999, GS)
+
 
     # x0 = [84.1, 2.5, 188.544, 789.287, 6.28, 0.375, 0.574, 0.577, 15.499, 34.613, 37.325, 37.325]
     # optimize(id, sf_interp_provider, x0=x0)
