@@ -36,7 +36,7 @@ def calculate_tower_height(q_solarfield_in_kw, is_north = True, wp_data = False)
         q_solarfield_in_kw - design point incident power on all receivers (kW)
         is_north - use north-field configuration
         wp_data - use Worley-Parsons curve
-    
+
     Returns
         Tower height (m)
     """
@@ -155,8 +155,8 @@ def ReceiverTubeThickness(D_tube):
 #----------------------------------------------------------------------------
 def calculate_cost(D, L, N_tubes):
     """
-    Calculate the receiver cost 
-    
+    Calculate the receiver cost
+
     Inputs
         D - tube outer (nominal) diameter (in)
         L - Receiver tube length / aka, receiver height (m)
@@ -170,114 +170,142 @@ def calculate_cost(D, L, N_tubes):
     The defaults are:
     D = 0.375 [in]
     L = 5.3 [m]
-    N_tubes = 14124 
+    N_tubes = 14124
     This model provided by Brayton
-    """
-    th_in = ReceiverTubeThickness(D)
-    
-    rho = 0.291 * 27679.905 #  [lbm/in3] * convert(lbm/in3,kg/m3)
-    D_out = D * 0.0254 #  [in] * convert(in,m)
-    th = th_in * 0.0254 #  [in] * convert(in,m)
-    D_in = D_out - 2 *th
-    
-    L_extra = 31.44 * D_out + 0.7312 #  [m]	"extra to account for expansion loop"
-    
-    a_cs = pi/4*(D_out**2-D_in**2)
-    V_tube = a_cs * (L + L_extra) * N_tubes 
-    m_tube = V_tube * rho 
-    
-    #"header"
-    f_extra = 1.25
-    L_header = N_tubes * D_out * f_extra   
-    
-    D_out_h = 2.875 * 0.0254 #  [in] * convert(in,m)
-    th_h_in = 0.343 * 0.0254 #  [in]* convert(in,m)
-    th_h_out = 0.688 * 0.0254 #  [in]* convert(in,m)
-    D_in_h_in = D_out_h - 2 * th_h_in
-    D_in_h_out = D_out_h - 2 * th_h_out
-    
-    V_h_in = pi/4*(D_out_h**2-D_in_h_in**2) * L_header
-    V_h_out = pi/4*(D_out_h**2-D_in_h_out**2) * L_header
-    
-    m_header = rho * (V_h_in + V_h_out)
-    
-    # "cap"
-    N_caps = L_header * 2 #  [1/m]
-    m_cap_in_spec = 2.4 * 0.4536 #  [lbm] * convert(lbm,kg)
-    m_cap_out_spec = 0.77 * 0.4536 #  [lbm] * convert(lbm,kg)
-    
-    m_cap = m_cap_in_spec * N_caps + m_cap_out_spec * N_caps
-    
-    # "tube_stub"
-    m_tube_stub_spec = 0.18 * 0.4536 #  [lbm] * convert(lbm,kg)
-    
-    N_stub = N_tubes * 2 
-    
-    m_tube_stub = N_stub * m_tube_stub_spec
-    
-    # "plate"
-    m_plate_spec = 0.02 * 0.4536 #  [lbm] * convert(lbm,kg)
-    N_plates = N_tubes * 24
-    
-    m_plate = N_plates * m_plate_spec
-    
-    # "sum" 
-    m_total = m_tube + m_header + m_cap + m_tube_stub + m_plate
-    spec_cost = 40 * 2.2046226 #  [$/lbm] * convert(1/lbm,1/kg)
-    mat_cost = m_total * spec_cost
-    
-    # "Toll Processing"
-    stub_cost_spec = 8
-    stub_toll_cost = N_stub * stub_cost_spec
-    
-    spec_cost_header = 4000 #  [$]
-    header_toll_cost = L_header * spec_cost_header * 2 #  [1/m]
-    
-    spec_cost_cap = 2000 #  [$]
-    cap_toll_cost = N_caps * spec_cost_cap
-    
-    plate_toll_spec = 0.1 #  [$]
-    plate_toll_cost = plate_toll_spec * N_plates
-    
-    tube_bend_toll_spec = 5 #  [$]
-    tube_bend_toll_cost = N_tubes * tube_bend_toll_spec
-    
-    toll_cost_total = stub_toll_cost + header_toll_cost + cap_toll_cost + plate_toll_cost + tube_bend_toll_cost
-    
-    # "Welding"
-    cap_weld_spec = 109.76 * 3.28084 #  [$/ft] * convert(1/ft,1/m)
-    cap_weld_cost = pi * D_out_h * cap_weld_spec * N_caps
-    
-    stub_weld_spec = 33.47 * 3.28084 #  [$/ft] * convert(1/ft,1/m)
-    stub_weld_cost = N_stub * pi * 0.75 * 0.0254 * stub_weld_spec #  [in] *  convert(in,m) 
-    
-    stay_plate_spec = 8.76 * 3.28084#  [$/ft] * convert(1/ft,1/m)
-    stay_plate_weld_cost = stay_plate_spec * 0.316 * 0.0254 * N_plates #  [in]  * convert(in,m)
-    
-    weld_cost = cap_weld_cost + stub_weld_cost + stay_plate_weld_cost
-    
-    # "frame"
-    #                    [$]      [m]    [in] 
-    frame_spec_cost = 46039.68 / (5.3 * 0.375 * 0.0254 * 14124)
-    frame_cost = frame_spec_cost * L * N_tubes * D_out
-    
-    # "insulation"
-    #                [$]   [ft][ft] convert(ft2,m2)
-    ins_spec_cost = 1000 / (3 * 4  * 0.09290304)
-    A_rec = L * N_tubes * D_out
-    
-    # A_rec = W_rec * L_rec
-    L_rec = (A_rec/2.)**(0.5)
-    W_rec = 2 * L_rec	#"assume worst case apsect ratio of 2"
 
-    per = 2*L_rec + 2*W_rec
-    L_ins_sur = 1.5 #  [m]	"1.5 m for spillage"
-    
-    A_ins = per * L_ins_sur
-    ins_cost = ins_spec_cost * A_ins
-    
-    # "total cost"
-    total_cost = (mat_cost + toll_cost_total + weld_cost + frame_cost +  ins_cost)*3  #3 receivers
+    3-12-21 model updated w/Worely costs
+    """
+
+    A_base = 2155
+    A_rec = D * 25.4 / 1000 * L * N_tubes
+
+
+    # Module Cost
+    module_spec_cost = 46e6/A_base
+    module_cost = module_spec_cost * A_rec
+
+    # Frame Cost
+    frame_cost_spec = 2e6/A_base
+    frame_cost = frame_cost_spec * A_rec
+
+    # Header Cost
+    header_cost_spec = 9e6/A_base
+    header_cost = header_cost_spec * A_rec
+
+    # Installation Cost
+    install_cost_spec = 2.3e6 / A_base
+    install_cost = install_cost_spec * A_rec
+
+    total_cost= module_cost + frame_cost + header_cost + install_cost
+
+    L_rec = (A_rec / 2.) ** (0.5)
+    W_rec = 2 * L_rec  # "assume worst case apsect ratio of 2"
+
+    # th_in = ReceiverTubeThickness(D)
+    #
+    # rho = 0.291 * 27679.905 #  [lbm/in3] * convert(lbm/in3,kg/m3)
+    # D_out = D * 0.0254 #  [in] * convert(in,m)
+    # th = th_in * 0.0254 #  [in] * convert(in,m)
+    # D_in = D_out - 2 *th
+    #
+    # L_extra = 31.44 * D_out + 0.7312 #  [m]	"extra to account for expansion loop"
+    #
+    # a_cs = pi/4*(D_out**2-D_in**2)
+    # V_tube = a_cs * (L + L_extra) * N_tubes
+    # m_tube = V_tube * rho
+    #
+    # #"header"
+    # f_extra = 1.25
+    # L_header = N_tubes * D_out * f_extra
+    #
+    # D_out_h = 2.875 * 0.0254 #  [in] * convert(in,m)
+    # th_h_in = 0.343 * 0.0254 #  [in]* convert(in,m)
+    # th_h_out = 0.688 * 0.0254 #  [in]* convert(in,m)
+    # D_in_h_in = D_out_h - 2 * th_h_in
+    # D_in_h_out = D_out_h - 2 * th_h_out
+    #
+    # V_h_in = pi/4*(D_out_h**2-D_in_h_in**2) * L_header
+    # V_h_out = pi/4*(D_out_h**2-D_in_h_out**2) * L_header
+    #
+    # m_header = rho * (V_h_in + V_h_out)
+    #
+    # # "cap"
+    # N_caps = L_header * 2 #  [1/m]
+    # m_cap_in_spec = 2.4 * 0.4536 #  [lbm] * convert(lbm,kg)
+    # m_cap_out_spec = 0.77 * 0.4536 #  [lbm] * convert(lbm,kg)
+    #
+    # m_cap = m_cap_in_spec * N_caps + m_cap_out_spec * N_caps
+    #
+    # # "tube_stub"
+    # m_tube_stub_spec = 0.18 * 0.4536 #  [lbm] * convert(lbm,kg)
+    #
+    # N_stub = N_tubes * 2
+    #
+    # m_tube_stub = N_stub * m_tube_stub_spec
+    #
+    # # "plate"
+    # m_plate_spec = 0.02 * 0.4536 #  [lbm] * convert(lbm,kg)
+    # N_plates = N_tubes * 24
+    #
+    # m_plate = N_plates * m_plate_spec
+    #
+    # # "sum"
+    # m_total = m_tube + m_header + m_cap + m_tube_stub + m_plate
+    # spec_cost = 40 * 2.2046226 #  [$/lbm] * convert(1/lbm,1/kg)
+    # mat_cost = m_total * spec_cost
+    #
+    # # "Toll Processing"
+    # stub_cost_spec = 8
+    # stub_toll_cost = N_stub * stub_cost_spec
+    #
+    # spec_cost_header = 4000 #  [$]
+    # header_toll_cost = L_header * spec_cost_header * 2 #  [1/m]
+    #
+    # spec_cost_cap = 2000 #  [$]
+    # cap_toll_cost = N_caps * spec_cost_cap
+    #
+    # plate_toll_spec = 0.1 #  [$]
+    # plate_toll_cost = plate_toll_spec * N_plates
+    #
+    # tube_bend_toll_spec = 5 #  [$]
+    # tube_bend_toll_cost = N_tubes * tube_bend_toll_spec
+    #
+    # toll_cost_total = stub_toll_cost + header_toll_cost + cap_toll_cost + plate_toll_cost + tube_bend_toll_cost
+    #
+    # # "Welding"
+    # cap_weld_spec = 109.76 * 3.28084 #  [$/ft] * convert(1/ft,1/m)
+    # cap_weld_cost = pi * D_out_h * cap_weld_spec * N_caps
+    #
+    # stub_weld_spec = 33.47 * 3.28084 #  [$/ft] * convert(1/ft,1/m)
+    # stub_weld_cost = N_stub * pi * 0.75 * 0.0254 * stub_weld_spec #  [in] *  convert(in,m)
+    #
+    # stay_plate_spec = 8.76 * 3.28084#  [$/ft] * convert(1/ft,1/m)
+    # stay_plate_weld_cost = stay_plate_spec * 0.316 * 0.0254 * N_plates #  [in]  * convert(in,m)
+    #
+    # weld_cost = cap_weld_cost + stub_weld_cost + stay_plate_weld_cost
+    #
+    # # "frame"
+    # #                    [$]      [m]    [in]
+    # frame_spec_cost = 46039.68 / (5.3 * 0.375 * 0.0254 * 14124)
+    # frame_cost = frame_spec_cost * L * N_tubes * D_out
+    #
+    # # "insulation"
+    # #                [$]   [ft][ft] convert(ft2,m2)
+    # ins_spec_cost = 1000 / (3 * 4  * 0.09290304)
+    # A_rec = L * N_tubes * D_out
+    #
+    # # A_rec = W_rec * L_rec
+    # L_rec = (A_rec/2.)**(0.5)
+    # W_rec = 2 * L_rec	#"assume worst case apsect ratio of 2"
+    #
+    # per = 2*L_rec + 2*W_rec
+    # L_ins_sur = 1.5 #  [m]	"1.5 m for spillage"
+    #
+    # A_ins = per * L_ins_sur
+    # ins_cost = ins_spec_cost * A_ins
+    #
+    # # "total cost"
+    # total_cost = (mat_cost + toll_cost_total + weld_cost + frame_cost +  ins_cost)*3  #3 receivers
     return {'total_cost':total_cost, 'A_rec':A_rec, 'W_rec':W_rec}
 
 
@@ -289,7 +317,7 @@ def __poly_coefs(X,Y):
     Input
         X - dim 3 array of x-axis values
         Y - dim 3 array of y-axis values
-    
+
     Returns
         array[3] : polynomial coefficients [const, linear, quad]
     """
@@ -316,7 +344,7 @@ def __interp_poly(X,Y,x):
 def load_receiver_interpolator_provider(receiver_file_path, mdot_adj_factor_tube_to_rec):
     """
     receiver_file_path:
-    Path to the CSV file of receiver efficiency and pressure drop 
+    Path to the CSV file of receiver efficiency and pressure drop
     as a function of tube diameter, tube length, mass flow fraction, and
     inlet temperature (for efficiency) and inlet pressure (for pressure drop).
     Needs columns:
@@ -361,7 +389,7 @@ def load_receiver_interpolator_provider(receiver_file_path, mdot_adj_factor_tube
     >> f_eta_inlet_condition_120 = rec_eta_lookup['eta'][120]
     >> eta_inlet_condition_120 = f_eta_inlet_condition_120( <tube diameter>, <tube length>)[0][0]
     """
-    
+
     df = ReadAndFilterCsv(receiver_file_path)
 
     # rec_eta_lookup ----------------------------------------------------------------------------
@@ -381,11 +409,11 @@ def load_receiver_interpolator_provider(receiver_file_path, mdot_adj_factor_tube
 
         diameters = df_group.D_tube_inch.values
         lengths = df_group.L_tube_m.values
-        
+
         # there will only be one loop as there's only one dependent value column (eta)
         for col in cols_eta[2:]:
             # print(id, col, diameters, df_group[col].values)
-            interp_funcs[col].append( 
+            interp_funcs[col].append(
                     # SmoothBivariateSpline(diameters, lengths, df_group[col].values, kx=2, ky=2)     # works great when kx=ky=2 for just data, but not
                                                                                                     #  between D's and L's. Doesn't work well when kx=ky=1
                     # interp2d(diameters, lengths, df_group[col].values, kind='linear')   # works a lot better than SmoothBivariateSpline
@@ -416,11 +444,11 @@ def load_receiver_interpolator_provider(receiver_file_path, mdot_adj_factor_tube
 
         diameters = df_group.D_tube_inch.values
         lengths = df_group.L_tube_m.values
-        
+
         # there will only be one loop as there's only one dependent value column (dP_kPa)
         for col in cols_dP[2:]:
-            interp_funcs[col].append( 
-                    # SmoothBivariateSpline(diameters, lengths, df_group[col].values, kx=2, ky=2) 
+            interp_funcs[col].append(
+                    # SmoothBivariateSpline(diameters, lengths, df_group[col].values, kx=2, ky=2)
                     # interp2d(diameters, lengths, df_group[col].values, kind='linear')
                     GlobalSpline2D(diameters, lengths, df_group[col].values, kind='linear')
                     # Rbf(diameters, lengths, df_group[col].values, function='thin_plate', smooth=0.0)
@@ -447,7 +475,7 @@ def create_receiver_eta_lookup(receiver_eta_interp_provider, D_tube, L_tube):
             T_in_C          |   (C) Receiver inlet temperature
             eta             |   (-) Receiver efficiency
     """
-    
+
     interp_data = [
         receiver_eta_interp_provider['m_dot_frac_eta'],
         receiver_eta_interp_provider['T_in_C'],
@@ -459,7 +487,7 @@ def create_receiver_eta_lookup(receiver_eta_interp_provider, D_tube, L_tube):
             interp_data.append( [ fun(D_tube, L_tube)[()] for fun in receiver_eta_interp_provider[col] ] )  # for rbf
         else:
             interp_data.append( [ fun(D_tube, L_tube)[0] for fun in receiver_eta_interp_provider[col] ] )
-        
+
     interp_data_list = array(interp_data).T.tolist()
 
     # Sort list, needed for proper use by SSC
@@ -491,7 +519,7 @@ def create_receiver_dP_lookup(receiver_dP_interp_provider, D_tube, L_tube):
             P_in_kPa        |   (kPa) Receiver inlet pressure
             dP_kPa          |   (kPa) Receiver pressure drop
     """
-    
+
     interp_data = [
         receiver_dP_interp_provider['m_dot_frac_dP'],
         receiver_dP_interp_provider['P_in_kPa'],
@@ -503,7 +531,7 @@ def create_receiver_dP_lookup(receiver_dP_interp_provider, D_tube, L_tube):
             interp_data.append( [ fun(D_tube, L_tube)[()] for fun in receiver_dP_interp_provider[col] ] )  # for rbf
         else:
             interp_data.append( [ fun(D_tube, L_tube)[0] for fun in receiver_dP_interp_provider[col] ] )
-        
+
     interp_data_list = array(interp_data).T.tolist()
 
     # Sort list, needed for proper use by SSC
@@ -646,7 +674,7 @@ def PlotReceiverTables(receiver_file_path, tube_config):
     """
     receiver_file_path:     path to CSV file of receiver efficiency and pressure drop
     tube_config:            can be either:
-                                '1/4-0.055"-1.6m')  
+                                '1/4-0.055"-1.6m')
                                 '1/4-0.055"-2.42m')
                                 '1/4-0.055"-3.35m')
                                 '3/8-0.070"-4.11m')
@@ -654,7 +682,7 @@ def PlotReceiverTables(receiver_file_path, tube_config):
                                 '3/8-0.070"-6.89m')
                                 '1/2-0.100"-4m')
                                 '1/2-0.100"-9.385m')
-                                '1/2-0.100"-14m')                                
+                                '1/2-0.100"-14m')
     """
 
     if tube_config == '1/4-0.055"-1.6m':
@@ -775,9 +803,9 @@ def PlotReceiverTables(receiver_file_path, tube_config):
 if __name__ == "__main__":
 
     # print(calculate_cost(0.375, 5.3, 14124))
-    
+
     # X = [3, 12, 33]
-    # Y = [15, 5, 40]    
+    # Y = [15, 5, 40]
     # c0,c1,c2 = __poly_coefs(X,Y)
     # Xa = numpy.arange(0, 50, .2)
     # Ya = [(lambda x: c0 + c1*x + c2*x**2)(x) for x in Xa]
@@ -815,14 +843,14 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------------------------------------------------------
     #---Testing receiver table generation---------------------------------------------------------------------------------
     # PlotReceiverTables('resource/rec_lookup_all.csv', '1/4-0.055"-1.6m')
-    # PlotReceiverTables('resource/rec_lookup_all.csv', '1/4-0.055"-2.42m') 
-    # # PlotReceiverTables('resource/rec_lookup_all.csv', '1/4-0.055"-3.35m') 
+    # PlotReceiverTables('resource/rec_lookup_all.csv', '1/4-0.055"-2.42m')
+    # # PlotReceiverTables('resource/rec_lookup_all.csv', '1/4-0.055"-3.35m')
     # PlotReceiverTables('resource/rec_lookup_all.csv', '3/8-0.070"-4.11m')
-    # # PlotReceiverTables('resource/rec_lookup_all.csv', '3/8-0.070"-5.78m') 
-    # PlotReceiverTables('resource/rec_lookup_all.csv', '3/8-0.070"-6.89m') 
+    # # PlotReceiverTables('resource/rec_lookup_all.csv', '3/8-0.070"-5.78m')
+    # PlotReceiverTables('resource/rec_lookup_all.csv', '3/8-0.070"-6.89m')
     # PlotReceiverTables('resource/rec_lookup_all.csv', '1/2-0.100"-4m')
     # # PlotReceiverTables('resource/rec_lookup_all.csv', '1/2-0.100"-9.385m')
-    # PlotReceiverTables('resource/rec_lookup_all.csv', '1/2-0.100"-14m')   
+    # PlotReceiverTables('resource/rec_lookup_all.csv', '1/2-0.100"-14m')
 
     #---------------------------------------------------------------------------------------------------------------------
     #---Testing receiver table generation for different diameters and lengths---------------------------------------------
