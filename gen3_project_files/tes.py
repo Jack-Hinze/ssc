@@ -329,7 +329,9 @@ def calculate_silo_cost(q_cycle_in_kw, hours_tes, dt_cycle):
     m_ton = m * 0.001102311
 
     #cost curve from Megan/Jack's old spreadsheet cost-model-jh_ROM BOM Baseload100MW.xlsx
-    cost = 1.551e6 * exp(4.2662e-5 * m_ton) * 2
+    # cost = 1.551e6 * exp(4.2662e-5 * m_ton) * 2
+
+    cost = 3.1e6 # includes silo plus day bin and chutes
 
     #media cost
     media = __media_cost * (m_ton + m_ton*.02*30 + m_ton*0.1)   #assume 2% annual replacement, 10% extra inventory
@@ -381,16 +383,18 @@ def calculate_lift_cost(q_solarfield_out_kw, lift_type):
     """
 
     # Assumed values when these relations were made:
-    kCycleEfficiency = 0.43
-    kSolarMult = 3
+    # kCycleEfficiency = 0.43
+    # kSolarMult = 3
+    #
+    # x = q_solarfield_out_kw /1000. * kCycleEfficiency / kSolarMult      # [MWe]
+    # if lift_type == 'bucket':
+    #     return 8.65829e3 * x**2 + 5.41087e5 * x - 5.38257e5
+    # elif lift_type == 'skip':
+    #     return 2.37809e3 * x**2 + 4.14694e5 * x + 8.80070e5
+    # else:
+    #     raise Exception("Invalid lift_type. Must be one of 'bucket' or 'skip'")
 
-    x = q_solarfield_out_kw /1000. * kCycleEfficiency / kSolarMult      # [MWe]
-    if lift_type == 'bucket':
-        return 8.65829e3 * x**2 + 5.41087e5 * x - 5.38257e5
-    elif lift_type == 'skip':
-        return 2.37809e3 * x**2 + 4.14694e5 * x + 8.80070e5
-    else:
-        raise Exception("Invalid lift_type. Must be one of 'bucket' or 'skip'")
+    return 3e6 # cost updated from Ryan's data 3-16-21, for 5MWe SM 3 system only
 
 #----------------------------------------------------------------------
 
