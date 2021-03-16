@@ -963,8 +963,8 @@ class Gen3opt:
         ssc.data_set_number( data, b'D_rec', D_rec );
         ssc.data_set_number( data, b'h_tower', self.variables.h_tower );
 
-        ssc.data_set_number( data, b'tower_fixed_cost', 3000000);     # this is just used for the default SAM implementation
-        ssc.data_set_number( data, b'tower_exp', 0.0113 );            # this is just used for the default SAM implementation
+        ssc.data_set_number( data, b'tower_fixed_cost', 4.4e6);     # set 3-16-21 to Ryans numbers for 70m tower
+        ssc.data_set_number( data, b'tower_exp', 0 );            # set 3-16-21 to Ryans numbers, previous 0.0113
         ssc.data_set_number( data, b'foundation_fixed_cost', 20116200 );
         ssc.data_set_number( data, b'foundation_cost_scaling_quadratic', 1672.69 );
         ssc.data_set_number( data, b'foundation_cost_scaling_linear', -183661 );
@@ -1397,7 +1397,7 @@ if __name__ == "__main__":
     # , , , P_ref,              solarm,         h_tower, dni_des,          rec_height,      -,                  piping_riser_diam, piping_downcomer_diam, tshours,   dt_charging,           dt_ht_discharging,       dt_lt_discharging
     # , , , cycle_design_power, solar_multiple, h_tower, dni_design_point, receiver_height, receiver_tube_diam, riser_inner_diam,  downcomer_inner_diam,  hours_tes, dT_approach_charge_hx, dT_approach_ht_disch_hx, dT_approach_lt_disch_hx
     cases = [
-        ['21_01_03_MW_base_opt', 'surround', 'skip', 5, 2.604, 45, 596, 2.44, 0.316, 0.184, 0.184, 10.349, 36.7, 27.6],
+        ['21_01_03_MW_base_opt', 'surround', 'skip', 5, 2.604, 70, 596, 2.44, 0.316, 0.184, 0.184, 10.349, 36.7, 27.6],
         # ['21_01_03_MW_base_opt', 'surround', 'skip', 83.045, 2.2, 110.71, 650, 4.342, 0.375, 0.399, 0.403, 11.381, 31.009, 23.255],
         #['21_01_04_MW_peak_opt', 'surround', 'skip', 83.506, 1.288, 95.687, 713.305, 4.334, 0.375, 0, 0, 12.65, 38.87, 32.973, 0],
         #['21_01_04_MW_peak_opt2', 'surround', 'skip', 63.087, 1.474, 67.418, 757.744, 3.317, 0.348, 0, 0, 15.644, 39.663, 29.863, 0],
