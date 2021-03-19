@@ -166,13 +166,13 @@ def optimize(thread_id, GlobalHandler, **kwargs):
     # set variable bounds
     xb = [
         [   5  ,  5  ],   # [0] cycle_design_power
-        [   2.2 ,  3.2  ],   # [1] solar_multiple
-        [   50  ,  200  ],   # [2] h_tower
-        [   650 ,  1200 ],   # [3] dni_design_point
+        [   2 ,  3.2  ],   # [1] solar_multiple
+        [   70  ,  100  ],   # [2] h_tower
+        [   550 ,  1200 ],   # [3] dni_design_point
         [    2 ,   7  ],     # [4] receiver_height
         [   .25 ,  .375 ],   # [5] receiver tube outside diameter
-        [   .3 ,   .75  ],   # [6] riser_inner_diam
-        [   .3 ,   .75  ],   # [7] downcomer_inner_diam
+        [   .1 ,   .75  ],   # [6] riser_inner_diam
+        [   .1 ,   .75  ],   # [7] downcomer_inner_diam
         [   4   ,  20   ],   # [8] hours_tes
         [   10  ,  40   ],   # [9] dT_approach_charge_hx
         [   10  ,  40   ],   # [10] dT_approach_ht_disch_hx
@@ -290,8 +290,8 @@ if __name__ == "__main__":
     GS = global_handler(G3field.load_heliostat_interpolator_provider('resource/eta_lookup_all.csv', 'surround'))        #choose 'north' or 'surround'
 
     # Run different field-lift combinations on different threads
-    nthreads = 2
-    nreplicates = 2
+    nthreads = 12
+    nreplicates = 120
     # -------
     all_args = []
     for i in range(nreplicates):
